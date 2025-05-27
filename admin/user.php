@@ -18,10 +18,10 @@ if (!isset($_SESSION['status']) || $_SESSION['status'] !== 'login' || !isset($_S
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
     
-    <!-- Judul halaman yang relevan -->
+    <!-- Judul halaman -->
     <title>Manajemen Pengguna | Portal IT Sekolah Global Mandiri</title>
     
-    <meta name="description" content="Halaman untuk mengelola pengguna admin" />
+    <meta name="description" content="Halaman untuk mengelola pengguna sistem admin" />
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="../assets/img/favicon/favicon.ico" />
@@ -63,21 +63,34 @@ if (!isset($_SESSION['status']) || $_SESSION['status'] !== 'login' || !isset($_S
                 <!-- Content wrapper -->
                 <div class="content-wrapper">
                     <!-- Content -->
-                    <?php
-                    // Mengganti tampiluser.php dengan konten dinamis
-                    $stmt = mysqli_prepare($koneksi, "SELECT id, username, hak_akses FROM user_admin");
-                    if ($stmt === false) {
-                        die("Error preparing statement: " . mysqli_error($koneksi));
-                    }
-                    mysqli_stmt_execute($stmt);
-                    $result = mysqli_stmt_get_result($stmt);
-                    ?>
                     <div class="container-xxl flex-grow-1 container-p-y">
                         <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">User /</span> Tampilkan User</h4>
+                        
+                        <!-- Notifikasi -->
+                        <?php
+                        if (isset($_GET['pesan'])) {
+                            if ($_GET['pesan'] === 'add_success') {
+                                echo '<div class="alert alert-success">Pengguna berhasil ditambahkan.</div>';
+                            } elseif ($_GET['pesan'] === 'edit_success') {
+                                echo '<div class="alert alert-success">Pengguna berhasil diedit.</div>';
+                            } elseif ($_GET['pesan'] === 'delete_success') {
+                                echo '<div class="alert alert-success">Pengguna berhasil dihapus.</div>';
+                            } elseif ($_GET['pesan'] === 'reset_success') {
+                                echo '<div class="alert alert-success">Kata sandi berhasil direset.</div>';
+                            } elseif ($_GET['pesan'] === 'invalid_id') {
+                                echo '<div class="alert alert-danger">ID pengguna tidak valid.</div>';
+                            } elseif ($_GET['pesan'] === 'user_not_found') {
+                                echo '<div class="alert alert-danger">Pengguna tidak ditemukan.</div>';
+                            } elseif ($_GET['pesan'] === 'delete_failed') {
+                                echo '<div class="alert alert-danger">Gagal menghapus pengguna.</div>';
+                            }
+                        }
+                        ?>
+
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0">Data User</h5>
-                                <a href="add_user.php" class="btn btn-primary">Tambah User</a>
+                                <a href="user/add_user.php" class="btn btn-primary">Tambah User</a>
                             </div>
                             <div class="table-responsive text-nowrap">
                                 <table class="table">
@@ -92,10 +105,17 @@ if (!isset($_SESSION['status']) || $_SESSION['status'] !== 'login' || !isset($_S
                                     </thead>
                                     <tbody>
                                         <?php
+                                        // Query untuk mengambil data pengguna
+                                        $stmt = mysqli_prepare($koneksi, "SELECT id, username, hak_akses FROM user_admin");
+                                        if ($stmt === false) {
+                                            die("Error preparing statement: " . mysqli_error($koneksi));
+                                        }
+                                        mysqli_stmt_execute($stmt);
+                                        $result = mysqli_stmt_get_result($stmt);
                                         $no = 1;
                                         while ($row = mysqli_fetch_assoc($result)) {
-                                            // Asumsi status aktif jika pengguna ada di database
-                                            $status = 'Active'; // Bisa diganti dengan logika lain jika ada kolom status
+                                            // Status default 'Active' karena tidak ada kolom status
+                                            $status = 'Active';
                                         ?>
                                             <tr>
                                                 <td><?php echo $no++; ?></td>
@@ -103,8 +123,9 @@ if (!isset($_SESSION['status']) || $_SESSION['status'] !== 'login' || !isset($_S
                                                 <td><?php echo htmlspecialchars($row['hak_akses']); ?></td>
                                                 <td><span class="badge bg-label-success"><?php echo $status; ?></span></td>
                                                 <td>
-                                                    <a href="edit_user.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-primary">Edit</a>
-                                                    <a href="delete_user.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus pengguna ini?')">Delete</a>
+                                                    <a href="user/edit_user.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-primary">Edit</a>
+                                                    <a href="user/delete_user.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus pengguna ini?')">Delete</a>
+                                                    <a href="user/reset_password.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-warning">Reset Password</a>
                                                 </td>
                                             </tr>
                                         <?php
